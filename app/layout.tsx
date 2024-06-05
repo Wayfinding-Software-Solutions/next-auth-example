@@ -1,10 +1,8 @@
 import "./globals.css"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import Footer from "@/components/footer"
-import Header from "@/components/header"
-
-const inter = Inter({ subsets: ["latin"] })
+import type { ReactNode } from "react"
+import { auth } from "auth"
+import { SignIn, SignOut } from "@/components/auth-components"
 
 export const metadata: Metadata = {
   title: "NextAuth.js Example",
@@ -12,18 +10,30 @@ export const metadata: Metadata = {
     "This is an example site to demonstrate how to use NextAuth.js for authentication",
 }
 
-export default function RootLayout({ children }: React.PropsWithChildren) {
+export default async function Layout({ children }: { children: ReactNode }) {
+  const session = await auth()
+  if (!session?.user) {
+    return (
+      <>
+        <SignIn />
+        <main>{children}</main>
+      </>
+    )
+  }
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <div className="flex flex-col justify-between w-full h-full min-h-screen">
-          <Header />
-          <main className="flex-auto w-full max-w-3xl px-4 py-4 mx-auto sm:px-6 md:py-6">
-            {children}
-          </main>
-          <Footer />
+    <>
+      <div className="flex gap-2 items-center">
+        <div className="flex flex-col space-y-1">
+          <p className="text-sm font-medium leading-none">
+            {session.user.name}
+          </p>
+          <p className="text-xs leading-none text-muted-foreground">
+            {session.user.email}
+          </p>
         </div>
-      </body>
-    </html>
+        <SignOut />
+      </div>
+      <main>{children}</main>
+    </>
   )
 }
